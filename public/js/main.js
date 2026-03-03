@@ -86,3 +86,40 @@
     rowsContainer.appendChild(newRow);
   });
 })();
+
+(function initBorrowItemRows() {
+  const rowsContainer = document.querySelector('[data-borrow-item-rows]');
+  const addButton = document.querySelector('[data-add-borrow-item-row]');
+
+  if (!rowsContainer || !addButton) {
+    return;
+  }
+
+  addButton.addEventListener('click', () => {
+    const firstRow = rowsContainer.querySelector('.borrow-item-row');
+    if (!firstRow) {
+      return;
+    }
+
+    const newRow = firstRow.cloneNode(true);
+    const fields = newRow.querySelectorAll('input, select');
+    fields.forEach((field) => {
+      if (field.name === 'amount') {
+        field.value = '1';
+      } else {
+        field.value = '';
+      }
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-cancel';
+    removeBtn.textContent = 'Remove Item';
+    removeBtn.addEventListener('click', () => {
+      newRow.remove();
+    });
+
+    newRow.appendChild(removeBtn);
+    rowsContainer.appendChild(newRow);
+  });
+})();

@@ -1,7 +1,10 @@
 const express = require('express');
 const controller = require('../controllers/equipmentController');
+const { requireAdmin } = require('../middlewares/auth');
 
 const router = express.Router();
+
+router.use(requireAdmin);
 
 router.get('/', controller.index);
 router.get('/new', controller.createForm);

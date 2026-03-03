@@ -1,43 +1,82 @@
 <%- include('../partials/header', { title, path }) %>
 <div class="page-header">
-  <h1>Create Borrow Record</h1>
+  <h1><%= currentUser && currentUser.role === 'admin' ? 'Create Borrow Record' : 'Borrow Equipment' %></h1>
 </div>
 <div class="card">
-  <form action="/borrows" method="POST" class="form-grid">
-    <div id="borrow-rows" data-borrow-rows>
-      <div class="borrow-row">
-        <div class="form-group">
-          <label>User</label>
-          <select name="user_id" required>
-            <option value="">Select user</option>
-            <% users.forEach((user) => { %>
-              <option value="<%= user.id %>"><%= user.full_name %> (<%= user.student_id %>)</option>
-            <% }) %>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Borrow Date</label>
-          <input name="borrow_date" type="date" required />
-        </div>
-        <div class="form-group">
-          <label>Due Date</label>
-          <input name="due_date" type="date" required />
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select name="borrow_status">
-            <option value="borrowed">borrowed</option>
-            <option value="returned">returned</option>
-            <option value="late">late</option>
-          </select>
+  <% if (currentUser && currentUser.role === 'admin') { %>
+    <form action="/borrows" method="POST" class="form-grid">
+      <div id="borrow-rows" data-borrow-rows>
+        <div class="borrow-row">
+          <div class="form-group">
+            <label>User</label>
+            <select name="user_id" required>
+              <option value="">Select user</option>
+              <% users.forEach((user) => { %>
+                <option value="<%= user.id %>"><%= user.full_name %> (<%= user.student_id %>)</option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Borrow Date</label>
+            <input name="borrow_date" type="date" required />
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input name="due_date" type="date" required />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select name="borrow_status">
+              <option value="borrowed">borrowed</option>
+              <option value="returned">returned</option>
+              <option value="late">late</option>
+            </select>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="actions">
-      <button type="button" class="btn btn-primary" data-add-borrow-row>Add Row</button>
-      <button type="submit" class="btn btn-add">Create</button>
-      <a class="btn btn-cancel" href="/borrows">Cancel</a>
-    </div>
-  </form>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" data-add-borrow-row>Add Row</button>
+        <button type="submit" class="btn btn-add">Create</button>
+        <a class="btn btn-cancel" href="/borrows">Cancel</a>
+      </div>
+    </form>
+  <% } else { %>
+    <form action="/borrows" method="POST" class="form-grid">
+      <div class="form-group">
+        <label>Borrow Date</label>
+        <input name="borrow_date" type="date" required />
+      </div>
+      <div class="form-group">
+        <label>Due Date</label>
+        <input name="due_date" type="date" required />
+      </div>
+      <div id="borrow-item-rows" data-borrow-item-rows>
+        <div class="borrow-item-row">
+          <div class="form-group">
+            <label>Equipment</label>
+            <select name="equipment_id" required>
+              <option value="">Select equipment</option>
+              <% equipment.forEach((item) => { %>
+                <option value="<%= item.id %>"><%= item.equipment_name %> (qty: <%= item.quantity %>)</option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount</label>
+            <input name="amount" type="number" min="1" value="1" required />
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <% if (equipment.length > 0) { %>
+          <button type="button" class="btn btn-primary" data-add-borrow-item-row>Add Item</button>
+          <button type="submit" class="btn btn-add">Borrow</button>
+        <% } else { %>
+          <span>No equipment available now. Please wait for returns.</span>
+        <% } %>
+        <a class="btn btn-cancel" href="/borrows">Cancel</a>
+      </div>
+    </form>
+  <% } %>
 </div>
 <%- include('../partials/footer') %>

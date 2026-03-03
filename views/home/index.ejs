@@ -5,22 +5,22 @@
 
 <section class="grid">
   <div class="card stat">
-    <h3>Total Users</h3>
+    <h3><%= currentUser && currentUser.role === 'admin' ? 'Total Users' : 'My Account' %></h3>
     <p><%= stats.totalUsers %></p>
   </div>
   <div class="card stat">
-    <h3>Total Equipment</h3>
+    <h3><%= currentUser && currentUser.role === 'admin' ? 'Total Equipment' : 'My Equipment Types' %></h3>
     <p><%= stats.totalEquipment %></p>
   </div>
   <div class="card stat">
-    <h3>Active Borrows</h3>
+    <h3><%= currentUser && currentUser.role === 'admin' ? 'Active Borrows' : 'My Active Borrows' %></h3>
     <p><%= stats.activeBorrows %></p>
   </div>
 </section>
 
 <section class="card" style="margin-top: 1rem;">
   <div class="page-header">
-    <h2>Recently Borrowed Items</h2>
+    <h2><%= currentUser && currentUser.role === 'admin' ? 'Recently Borrowed Items' : 'My Recent Borrows' %></h2>
     <a class="btn btn-primary" href="/borrows">View All Borrows</a>
   </div>
   <div class="table-wrap">

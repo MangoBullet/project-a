@@ -7,7 +7,10 @@ const session = require('express-session');
 const flash = require('connect-flash');
 
 const { sequelize, User, Equipment, Borrow, BorrowDetail } = require('./models');
+const { attachCurrentUser, requireAuth } = require('./middlewares/auth');
+const { hashPassword } = require('./utils/password');
 
+const authRoutes = require('./routes/auth');
 const indexRoutes = require('./routes/index');
 const userRoutes = require('./routes/users');
 const equipmentRoutes = require('./routes/equipment');
@@ -36,12 +39,18 @@ app.use(
 
 app.use(flash());
 
+app.use(attachCurrentUser);
+
 app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.path = req.path;
+  res.locals.currentUser = res.locals.currentUser || null;
   next();
 });
+
+app.use('/', authRoutes);
+app.use(requireAuth);
 
 app.use('/', indexRoutes);
 app.use('/users', userRoutes);
@@ -88,6 +97,20 @@ async function startServer() {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
+
+    const adminUsername = process.env.DEFAULT_ADMIN_USERNAME || 'admin';
+    const existingAdmin = await User.findOne({ where: { username: adminUsername } });
+    if (!existingAdmin) {
+      await User.create({
+        full_name: process.env.DEFAULT_ADMIN_NAME || 'System Admin',
+        student_id: process.env.DEFAULT_ADMIN_STUDENT_ID || `ADM${Date.now()}`,
+        phone: process.env.DEFAULT_ADMIN_PHONE || '000-000-0000',
+        username: adminUsername,
+        password_hash: hashPassword(process.env.DEFAULT_ADMIN_PASSWORD || 'admin123'),
+        role: 'admin'
+      });
+      console.log(`Default admin created. username: ${adminUsername}`);
+    }
 
     // Ensure sqlite file exists after first sync.
     await Promise.all([

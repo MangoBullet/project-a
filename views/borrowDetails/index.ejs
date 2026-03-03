@@ -1,7 +1,9 @@
 <%- include('../partials/header', { title, path }) %>
 <div class="page-header">
-  <h1>Borrow Details</h1>
-  <a class="btn btn-add" href="/borrow-details/new">Add Borrow Detail</a>
+  <h1><%= currentUser && currentUser.role === 'admin' ? 'Borrow Details' : 'My Borrow Details' %></h1>
+  <% if (currentUser && currentUser.role === 'admin') { %>
+    <a class="btn btn-add" href="/borrow-details/new">Add Borrow Detail</a>
+  <% } %>
 </div>
 
 <div class="card table-wrap">
@@ -28,10 +30,12 @@
           <td><%= detail.returned_amount %></td>
           <td class="actions">
             <a class="btn btn-primary" href="/borrow-details/<%= detail.id %>">Show</a>
-            <a class="btn btn-warning" href="/borrow-details/<%= detail.id %>/edit">Edit</a>
-            <form action="/borrow-details/<%= detail.id %>?_method=DELETE" method="POST" data-confirm="Delete this borrow detail?">
-              <button class="btn btn-delete" type="submit">Delete</button>
-            </form>
+            <% if (currentUser && currentUser.role === 'admin') { %>
+              <a class="btn btn-warning" href="/borrow-details/<%= detail.id %>/edit">Edit</a>
+              <form action="/borrow-details/<%= detail.id %>?_method=DELETE" method="POST" data-confirm="Delete this borrow detail?">
+                <button class="btn btn-delete" type="submit">Delete</button>
+              </form>
+            <% } %>
           </td>
         </tr>
       <% }) %>

@@ -22,6 +22,24 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
         validate: { notEmpty: true }
+      },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: { notEmpty: true }
+      },
+      password_hash: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        validate: { notEmpty: true }
+      },
+      role: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'user',
+        validate: {
+          isIn: [['admin', 'user']]
+        }
       }
     },
     {

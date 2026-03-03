@@ -1,7 +1,15 @@
 const { User } = require('../models');
+const { hashPassword } = require('../utils/password');
+
+function isAdmin(req) {
+  return req.currentUser && req.currentUser.role === 'admin';
+}
 
 exports.index = async (req, res, next) => {
   try {
+    if (!isAdmin(req)) {
+      return res.redirect(`/users/${req.currentUser.id}`);
+    }
     const users = await User.findAll({ order: [['id', 'ASC']] });
     res.render('users/index', { title: 'Users', users });
   } catch (error) {
@@ -11,6 +19,11 @@ exports.index = async (req, res, next) => {
 
 exports.show = async (req, res, next) => {
   try {
+    if (!isAdmin(req) && Number(req.params.id) !== req.currentUser.id) {
+      req.flash('error', 'Access denied.');
+      return res.redirect(`/users/${req.currentUser.id}`);
+    }
+
     const user = await User.findByPk(req.params.id);
     if (!user) {
       req.flash('error', 'User not found.');
@@ -28,8 +41,27 @@ exports.createForm = (req, res) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { full_name, student_id, phone } = req.body;
-    await User.create({ full_name, student_id, phone });
+    const { full_name, student_id, phone, username, password, role } = req.body;
+
+    if (!password) {
+      req.flash('error', 'Password is required.');
+      return res.redirect('/users/new');
+    }
+
+    const existingUsername = await User.findOne({ where: { username } });
+    if (existingUsername) {
+      req.flash('error', 'Username is already in use.');
+      return res.redirect('/users/new');
+    }
+
+    await User.create({
+      full_name,
+      student_id,
+      phone,
+      username,
+      password_hash: hashPassword(password),
+      role: role === 'admin' ? 'admin' : 'user'
+    });
     req.flash('success', 'User created successfully.');
     res.redirect('/users');
   } catch (error) {
@@ -40,6 +72,11 @@ exports.create = async (req, res, next) => {
 
 exports.editForm = async (req, res, next) => {
   try {
+    if (!isAdmin(req) && Number(req.params.id) !== req.currentUser.id) {
+      req.flash('error', 'Access denied.');
+      return res.redirect(`/users/${req.currentUser.id}`);
+    }
+
     const user = await User.findByPk(req.params.id);
     if (!user) {
       req.flash('error', 'User not found.');
@@ -53,16 +90,43 @@ exports.editForm = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
   try {
+    if (!isAdmin(req) && Number(req.params.id) !== req.currentUser.id) {
+      req.flash('error', 'Access denied.');
+      return res.redirect(`/users/${req.currentUser.id}`);
+    }
+
     const user = await User.findByPk(req.params.id);
     if (!user) {
       req.flash('error', 'User not found.');
       return res.redirect('/users');
     }
 
-    const { full_name, student_id, phone } = req.body;
-    await user.update({ full_name, student_id, phone });
+    const { full_name, student_id, phone, username, password, role } = req.body;
+
+    const existingUsername = await User.findOne({ where: { username } });
+    if (existingUsername && existingUsername.id !== user.id) {
+      req.flash('error', 'Username is already in use.');
+      return res.redirect(`/users/${req.params.id}/edit`);
+    }
+
+    const updatePayload = {
+      full_name,
+      student_id,
+      phone,
+      username
+    };
+
+    if (isAdmin(req)) {
+      updatePayload.role = role === 'admin' ? 'admin' : 'user';
+    }
+
+    if (password) {
+      updatePayload.password_hash = hashPassword(password);
+    }
+
+    await user.update(updatePayload);
     req.flash('success', 'User updated successfully.');
-    res.redirect('/users');
+    res.redirect(isAdmin(req) ? '/users' : `/users/${user.id}`);
   } catch (error) {
     req.flash('error', error.message);
     res.redirect(`/users/${req.params.id}/edit`);
@@ -71,9 +135,19 @@ exports.update = async (req, res, next) => {
 
 exports.destroy = async (req, res, next) => {
   try {
+    if (!isAdmin(req)) {
+      req.flash('error', 'Access denied.');
+      return res.redirect(`/users/${req.currentUser.id}`);
+    }
+
     const user = await User.findByPk(req.params.id);
     if (!user) {
       req.flash('error', 'User not found.');
+      return res.redirect('/users');
+    }
+
+    if (user.id === req.currentUser.id) {
+      req.flash('error', 'You cannot delete your own admin account.');
       return res.redirect('/users');
     }
 

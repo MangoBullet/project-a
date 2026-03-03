@@ -55,6 +55,7 @@ body {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .nav-links a {
@@ -69,6 +70,10 @@ body {
 .nav-links a.active {
   background: rgba(59, 130, 246, 0.25);
   color: #fff;
+}
+
+.nav-links form {
+  margin: 0;
 }
 
 .page-header {
@@ -225,6 +230,10 @@ textarea:focus {
 }
 
 .form-grid [data-borrow-rows] {
+  grid-column: 1 / -1;
+}
+
+.form-grid [data-borrow-item-rows] {
   grid-column: 1 / -1;
 }
 

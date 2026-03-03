@@ -1,13 +1,27 @@
-const { BorrowDetail, Borrow, Equipment, User } = require('../models');
+const { sequelize, BorrowDetail, Borrow, Equipment, User } = require('../models');
+
+function nextEquipmentStatus(currentStatus, quantity) {
+  if (currentStatus === 'maintenance') {
+    return 'maintenance';
+  }
+  return quantity > 0 ? 'available' : 'borrowed';
+}
 
 exports.index = async (req, res, next) => {
   try {
+    const borrowInclude = {
+      model: Borrow,
+      include: [{ model: User }]
+    };
+
+    if (req.currentUser.role !== 'admin') {
+      borrowInclude.where = { user_id: req.currentUser.id };
+      borrowInclude.required = true;
+    }
+
     const details = await BorrowDetail.findAll({
       include: [
-        {
-          model: Borrow,
-          include: [{ model: User }]
-        },
+        borrowInclude,
         { model: Equipment }
       ],
       order: [['id', 'DESC']]
@@ -24,12 +38,20 @@ exports.index = async (req, res, next) => {
 
 exports.show = async (req, res, next) => {
   try {
-    const detail = await BorrowDetail.findByPk(req.params.id, {
+    const borrowInclude = {
+      model: Borrow,
+      include: [{ model: User }]
+    };
+
+    if (req.currentUser.role !== 'admin') {
+      borrowInclude.where = { user_id: req.currentUser.id };
+      borrowInclude.required = true;
+    }
+
+    const detail = await BorrowDetail.findOne({
+      where: { id: req.params.id },
       include: [
-        {
-          model: Borrow,
-          include: [{ model: User }]
-        },
+        borrowInclude,
         { model: Equipment }
       ]
     });
@@ -69,17 +91,46 @@ exports.createForm = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const { borrow_id, equipment_id, amount, returned_amount } = req.body;
+    const amountNumber = Number(amount);
+    const returnedNumber = Number(returned_amount || 0);
 
-    if (Number(returned_amount || 0) > Number(amount)) {
+    if (amountNumber < 1) {
+      req.flash('error', 'Amount must be at least 1.');
+      return res.redirect('/borrow-details/new');
+    }
+
+    if (returnedNumber > amountNumber) {
       req.flash('error', 'Returned amount cannot exceed borrowed amount.');
       return res.redirect('/borrow-details/new');
     }
 
-    await BorrowDetail.create({
-      borrow_id,
-      equipment_id,
-      amount: Number(amount),
-      returned_amount: Number(returned_amount || 0)
+    const outstanding = amountNumber - returnedNumber;
+
+    await sequelize.transaction(async (transaction) => {
+      const equipmentItem = await Equipment.findByPk(equipment_id, { transaction });
+      if (!equipmentItem) {
+        throw new Error('Equipment not found.');
+      }
+
+      if (Number(equipmentItem.quantity) < outstanding) {
+        throw new Error(`Not enough stock for ${equipmentItem.equipment_name}.`);
+      }
+
+      await BorrowDetail.create({
+        borrow_id,
+        equipment_id,
+        amount: amountNumber,
+        returned_amount: returnedNumber
+      }, { transaction });
+
+      const newQuantity = Number(equipmentItem.quantity) - outstanding;
+      await equipmentItem.update(
+        {
+          quantity: newQuantity,
+          status: nextEquipmentStatus(equipmentItem.status, newQuantity)
+        },
+        { transaction }
+      );
     });
 
     req.flash('success', 'Borrow detail created successfully.');
@@ -127,17 +178,83 @@ exports.update = async (req, res, next) => {
     }
 
     const { borrow_id, equipment_id, amount, returned_amount } = req.body;
+    const newAmount = Number(amount);
+    const newReturned = Number(returned_amount || 0);
 
-    if (Number(returned_amount || 0) > Number(amount)) {
+    if (newAmount < 1) {
+      req.flash('error', 'Amount must be at least 1.');
+      return res.redirect(`/borrow-details/${req.params.id}/edit`);
+    }
+
+    if (newReturned > newAmount) {
       req.flash('error', 'Returned amount cannot exceed borrowed amount.');
       return res.redirect(`/borrow-details/${req.params.id}/edit`);
     }
 
-    await detail.update({
-      borrow_id,
-      equipment_id,
-      amount: Number(amount),
-      returned_amount: Number(returned_amount || 0)
+    await sequelize.transaction(async (transaction) => {
+      const oldEquipmentId = Number(detail.equipment_id);
+      const newEquipmentId = Number(equipment_id);
+      const oldOutstanding = Number(detail.amount) - Number(detail.returned_amount || 0);
+      const newOutstanding = newAmount - newReturned;
+
+      if (oldEquipmentId === newEquipmentId) {
+        const equipmentItem = await Equipment.findByPk(oldEquipmentId, { transaction });
+        if (!equipmentItem) {
+          throw new Error('Equipment not found.');
+        }
+
+        const quantityDelta = oldOutstanding - newOutstanding;
+        const nextQuantity = Number(equipmentItem.quantity) + quantityDelta;
+        if (nextQuantity < 0) {
+          throw new Error(`Not enough stock for ${equipmentItem.equipment_name}.`);
+        }
+
+        await equipmentItem.update(
+          {
+            quantity: nextQuantity,
+            status: nextEquipmentStatus(equipmentItem.status, nextQuantity)
+          },
+          { transaction }
+        );
+      } else {
+        const [oldEquipment, newEquipment] = await Promise.all([
+          Equipment.findByPk(oldEquipmentId, { transaction }),
+          Equipment.findByPk(newEquipmentId, { transaction })
+        ]);
+
+        if (!oldEquipment || !newEquipment) {
+          throw new Error('Equipment not found.');
+        }
+
+        if (Number(newEquipment.quantity) < newOutstanding) {
+          throw new Error(`Not enough stock for ${newEquipment.equipment_name}.`);
+        }
+
+        const restoredOldQuantity = Number(oldEquipment.quantity) + oldOutstanding;
+        await oldEquipment.update(
+          {
+            quantity: restoredOldQuantity,
+            status: nextEquipmentStatus(oldEquipment.status, restoredOldQuantity)
+          },
+          { transaction }
+        );
+
+        const reducedNewQuantity = Number(newEquipment.quantity) - newOutstanding;
+        await newEquipment.update(
+          {
+            quantity: reducedNewQuantity,
+            status: nextEquipmentStatus(newEquipment.status, reducedNewQuantity)
+          },
+          { transaction }
+        );
+      }
+
+      await detail.update({
+        borrow_id,
+        equipment_id: newEquipmentId,
+        amount: newAmount,
+        returned_amount: newReturned
+      }, { transaction });
     });
 
     req.flash('success', 'Borrow detail updated successfully.');
@@ -157,7 +274,25 @@ exports.destroy = async (req, res, next) => {
       return res.redirect('/borrow-details');
     }
 
-    await detail.destroy();
+    await sequelize.transaction(async (transaction) => {
+      const equipmentItem = await Equipment.findByPk(detail.equipment_id, { transaction });
+      if (!equipmentItem) {
+        throw new Error('Equipment not found.');
+      }
+
+      const outstanding = Number(detail.amount) - Number(detail.returned_amount || 0);
+      const newQuantity = Number(equipmentItem.quantity) + Math.max(0, outstanding);
+      await equipmentItem.update(
+        {
+          quantity: newQuantity,
+          status: nextEquipmentStatus(equipmentItem.status, newQuantity)
+        },
+        { transaction }
+      );
+
+      await detail.destroy({ transaction });
+    });
+
     req.flash('success', 'Borrow detail deleted successfully.');
     res.redirect('/borrow-details');
   } catch (error) {

@@ -3,7 +3,7 @@
   <h1>User Detail</h1>
   <div class="actions">
     <a class="btn btn-warning" href="/users/<%= user.id %>/edit">Edit</a>
-    <a class="btn btn-cancel" href="/users">Back</a>
+    <a class="btn btn-cancel" href="<%= currentUser && currentUser.role === 'admin' ? '/users' : '/' %>">Back</a>
   </div>
 </div>
 <div class="card">
@@ -11,5 +11,7 @@
   <p><strong>Full Name:</strong> <%= user.full_name %></p>
   <p><strong>Student ID:</strong> <%= user.student_id %></p>
   <p><strong>Phone:</strong> <%= user.phone %></p>
+  <p><strong>Username:</strong> <%= user.username %></p>
+  <p><strong>Role:</strong> <%= user.role %></p>
 </div>
 <%- include('../partials/footer') %>

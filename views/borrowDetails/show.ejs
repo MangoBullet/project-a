@@ -2,7 +2,9 @@
 <div class="page-header">
   <h1>Borrow Detail Item</h1>
   <div class="actions">
-    <a class="btn btn-warning" href="/borrow-details/<%= detail.id %>/edit">Edit</a>
+    <% if (currentUser && currentUser.role === 'admin') { %>
+      <a class="btn btn-warning" href="/borrow-details/<%= detail.id %>/edit">Edit</a>
+    <% } %>
     <a class="btn btn-cancel" href="/borrow-details">Back</a>
   </div>
 </div>
