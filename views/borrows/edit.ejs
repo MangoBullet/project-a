@@ -1,0 +1,37 @@
+<%- include('../partials/header', { title, path }) %>
+<div class="page-header">
+  <h1>Edit Borrow Record</h1>
+</div>
+<div class="card">
+  <form action="/borrows/<%= borrow.id %>?_method=PUT" method="POST" class="form-grid">
+    <div class="form-group">
+      <label for="user_id">User</label>
+      <select id="user_id" name="user_id" required>
+        <% users.forEach((user) => { %>
+          <option value="<%= user.id %>" <%= user.id === borrow.user_id ? 'selected' : '' %>><%= user.full_name %> (<%= user.student_id %>)</option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="borrow_date">Borrow Date</label>
+      <input id="borrow_date" name="borrow_date" type="date" value="<%= borrow.borrow_date %>" required />
+    </div>
+    <div class="form-group">
+      <label for="due_date">Due Date</label>
+      <input id="due_date" name="due_date" type="date" value="<%= borrow.due_date %>" required />
+    </div>
+    <div class="form-group">
+      <label for="borrow_status">Status</label>
+      <select id="borrow_status" name="borrow_status">
+        <option value="borrowed" <%= borrow.borrow_status === 'borrowed' ? 'selected' : '' %>>borrowed</option>
+        <option value="returned" <%= borrow.borrow_status === 'returned' ? 'selected' : '' %>>returned</option>
+        <option value="late" <%= borrow.borrow_status === 'late' ? 'selected' : '' %>>late</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Update</button>
+      <a class="btn btn-cancel" href="/borrows">Cancel</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

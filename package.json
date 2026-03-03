@@ -1,0 +1,33 @@
+{
+  "name": "yeumeasy",
+  "version": "1.0.0",
+  "description": "YeumEasy - Borrow-Return Equipment Management System",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start": "node app.js",
+    "seed": "node database/seed.js"
+  },
+  "keywords": [
+    "express",
+    "sequelize",
+    "sqlite",
+    "mvc",
+    "ejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "method-override": "^3.0.0",
+    "sequelize": "^6.37.5",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

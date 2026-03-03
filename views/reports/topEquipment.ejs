@@ -1,0 +1,36 @@
+<%- include('../partials/header', { title, path }) %>
+<div class="page-header">
+  <h1>Most Borrowed Equipment</h1>
+  <a class="btn btn-cancel" href="/reports/borrow-by-date">Back to Date Report</a>
+</div>
+
+<div class="card table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Equipment Name</th>
+        <th>Total Times Borrowed</th>
+        <th>Total Quantity Borrowed</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% reportRows.forEach((row, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= row.equipmentName %></td>
+          <td><%= row.totalTimesBorrowed %></td>
+          <td><%= row.totalQuantityBorrowed %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="2">สรุปยอดรวม</th>
+        <th><%= totals.totalTimesBorrowed %></th>
+        <th><%= totals.totalQuantityBorrowed %></th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,16 @@
+<%- include('../partials/header', { title, path }) %>
+<div class="page-header">
+  <h1>Equipment Detail</h1>
+  <div class="actions">
+    <a class="btn btn-warning" href="/equipment/<%= item.id %>/edit">Edit</a>
+    <a class="btn btn-cancel" href="/equipment">Back</a>
+  </div>
+</div>
+<div class="card">
+  <p><strong>ID:</strong> <%= item.id %></p>
+  <p><strong>Name:</strong> <%= item.equipment_name %></p>
+  <p><strong>Category:</strong> <%= item.category %></p>
+  <p><strong>Quantity:</strong> <%= item.quantity %></p>
+  <p><strong>Status:</strong> <%= item.status %></p>
+</div>
+<%- include('../partials/footer') %>

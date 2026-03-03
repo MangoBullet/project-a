@@ -1,0 +1,15 @@
+<%- include('../partials/header', { title, path }) %>
+<div class="page-header">
+  <h1>User Detail</h1>
+  <div class="actions">
+    <a class="btn btn-warning" href="/users/<%= user.id %>/edit">Edit</a>
+    <a class="btn btn-cancel" href="/users">Back</a>
+  </div>
+</div>
+<div class="card">
+  <p><strong>ID:</strong> <%= user.id %></p>
+  <p><strong>Full Name:</strong> <%= user.full_name %></p>
+  <p><strong>Student ID:</strong> <%= user.student_id %></p>
+  <p><strong>Phone:</strong> <%= user.phone %></p>
+</div>
+<%- include('../partials/footer') %>

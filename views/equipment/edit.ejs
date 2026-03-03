@@ -1,0 +1,33 @@
+<%- include('../partials/header', { title, path }) %>
+<div class="page-header">
+  <h1>Edit Equipment</h1>
+</div>
+<div class="card">
+  <form action="/equipment/<%= item.id %>?_method=PUT" method="POST" class="form-grid">
+    <div class="form-group">
+      <label for="equipment_name">Equipment Name</label>
+      <input id="equipment_name" name="equipment_name" value="<%= item.equipment_name %>" required />
+    </div>
+    <div class="form-group">
+      <label for="category">Category</label>
+      <input id="category" name="category" value="<%= item.category %>" required />
+    </div>
+    <div class="form-group">
+      <label for="quantity">Quantity</label>
+      <input id="quantity" name="quantity" type="number" min="0" value="<%= item.quantity %>" required />
+    </div>
+    <div class="form-group">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="available" <%= item.status === 'available' ? 'selected' : '' %>>available</option>
+        <option value="borrowed" <%= item.status === 'borrowed' ? 'selected' : '' %>>borrowed</option>
+        <option value="maintenance" <%= item.status === 'maintenance' ? 'selected' : '' %>>maintenance</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Update</button>
+      <a class="btn btn-cancel" href="/equipment">Cancel</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,25 @@
+<%- include('../partials/header', { title, path }) %>
+<div class="page-header">
+  <h1>Edit User</h1>
+</div>
+<div class="card">
+  <form action="/users/<%= user.id %>?_method=PUT" method="POST" class="form-grid">
+    <div class="form-group">
+      <label for="full_name">Full Name</label>
+      <input id="full_name" name="full_name" value="<%= user.full_name %>" required />
+    </div>
+    <div class="form-group">
+      <label for="student_id">Student ID</label>
+      <input id="student_id" name="student_id" value="<%= user.student_id %>" required />
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone</label>
+      <input id="phone" name="phone" value="<%= user.phone %>" required />
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">Update</button>
+      <a class="btn btn-cancel" href="/users">Cancel</a>
+    </div>
+  </form>
+</div>
+<%- include('../partials/footer') %>

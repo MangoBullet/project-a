@@ -1,0 +1,57 @@
+<%- include('../partials/header', { title, path }) %>
+<div class="page-header">
+  <h1>Dashboard</h1>
+</div>
+
+<section class="grid">
+  <div class="card stat">
+    <h3>Total Users</h3>
+    <p><%= stats.totalUsers %></p>
+  </div>
+  <div class="card stat">
+    <h3>Total Equipment</h3>
+    <p><%= stats.totalEquipment %></p>
+  </div>
+  <div class="card stat">
+    <h3>Active Borrows</h3>
+    <p><%= stats.activeBorrows %></p>
+  </div>
+</section>
+
+<section class="card" style="margin-top: 1rem;">
+  <div class="page-header">
+    <h2>Recently Borrowed Items</h2>
+    <a class="btn btn-primary" href="/borrows">View All Borrows</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Borrow ID</th>
+          <th>User</th>
+          <th>Date</th>
+          <th>Items</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% recentlyBorrowedItems.forEach((borrow) => { %>
+          <tr>
+            <td>#<%= borrow.id %></td>
+            <td><%= borrow.User ? borrow.User.full_name : '-' %></td>
+            <td><%= borrow.borrow_date %></td>
+            <td>
+              <% if (borrow.BorrowDetails.length === 0) { %>
+                -
+              <% } else { %>
+                <%= borrow.BorrowDetails.map((d) => `${d.Equipment ? d.Equipment.equipment_name : 'Unknown'} (${d.amount})`).join(', ') %>
+              <% } %>
+            </td>
+            <td><%= borrow.borrow_status %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/footer') %>
