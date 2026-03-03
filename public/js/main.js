@@ -10,3 +10,42 @@
     });
   });
 })();
+
+(function initEquipmentRows() {
+  const rowsContainer = document.querySelector('[data-equipment-rows]');
+  const addButton = document.querySelector('[data-add-equipment-row]');
+
+  if (!rowsContainer || !addButton) {
+    return;
+  }
+
+  addButton.addEventListener('click', () => {
+    const firstRow = rowsContainer.querySelector('.equipment-row');
+    if (!firstRow) {
+      return;
+    }
+
+    const newRow = firstRow.cloneNode(true);
+    const inputs = newRow.querySelectorAll('input, select');
+    inputs.forEach((field) => {
+      if (field.tagName === 'SELECT') {
+        field.value = 'available';
+      } else if (field.name === 'quantity') {
+        field.value = '0';
+      } else {
+        field.value = '';
+      }
+    });
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn btn-cancel';
+    removeBtn.textContent = 'Remove Row';
+    removeBtn.addEventListener('click', () => {
+      newRow.remove();
+    });
+
+    newRow.appendChild(removeBtn);
+    rowsContainer.appendChild(newRow);
+  });
+})();

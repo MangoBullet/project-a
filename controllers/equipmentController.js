@@ -29,13 +29,32 @@ exports.createForm = (req, res) => {
 exports.create = async (req, res, next) => {
   try {
     const { equipment_name, category, quantity, status } = req.body;
-    await Equipment.create({
-      equipment_name,
-      category,
-      quantity: Number(quantity) || 0,
-      status: status || 'available'
-    });
-    req.flash('success', 'Equipment created successfully.');
+
+    const names = Array.isArray(equipment_name) ? equipment_name : [equipment_name];
+    const categories = Array.isArray(category) ? category : [category];
+    const quantities = Array.isArray(quantity) ? quantity : [quantity];
+    const statuses = Array.isArray(status) ? status : [status];
+
+    const payload = names
+      .map((name, index) => ({
+        equipment_name: String(name || '').trim(),
+        category: String(categories[index] || '').trim(),
+        quantity: Math.max(0, Number(quantities[index]) || 0),
+        status: statuses[index] || 'available'
+      }))
+      .filter((item) => item.equipment_name && item.category);
+
+    if (!payload.length) {
+      throw new Error('Please provide at least one valid equipment item.');
+    }
+
+    if (payload.length === 1) {
+      await Equipment.create(payload[0]);
+    } else {
+      await Equipment.bulkCreate(payload);
+    }
+
+    req.flash('success', `${payload.length} equipment item(s) created successfully.`);
     res.redirect('/equipment');
   } catch (error) {
     req.flash('error', error.message);

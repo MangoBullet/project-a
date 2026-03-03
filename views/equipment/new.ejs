@@ -4,27 +4,32 @@
 </div>
 <div class="card">
   <form action="/equipment" method="POST" class="form-grid">
-    <div class="form-group">
-      <label for="equipment_name">Equipment Name</label>
-      <input id="equipment_name" name="equipment_name" required />
-    </div>
-    <div class="form-group">
-      <label for="category">Category</label>
-      <input id="category" name="category" required />
-    </div>
-    <div class="form-group">
-      <label for="quantity">Quantity</label>
-      <input id="quantity" name="quantity" type="number" min="0" value="0" required />
-    </div>
-    <div class="form-group">
-      <label for="status">Status</label>
-      <select id="status" name="status">
-        <option value="available">available</option>
-        <option value="borrowed">borrowed</option>
-        <option value="maintenance">maintenance</option>
-      </select>
+    <div id="equipment-rows" data-equipment-rows>
+      <div class="equipment-row">
+        <div class="form-group">
+          <label>Equipment Name</label>
+          <input name="equipment_name" required />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <input name="category" required />
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input name="quantity" type="number" min="0" value="0" required />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select name="status">
+            <option value="available">available</option>
+            <option value="borrowed">borrowed</option>
+            <option value="maintenance">maintenance</option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="actions">
+      <button type="button" class="btn btn-primary" data-add-equipment-row>Add Row</button>
       <button type="submit" class="btn btn-add">Create</button>
       <a class="btn btn-cancel" href="/equipment">Cancel</a>
     </div>

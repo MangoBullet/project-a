@@ -213,6 +213,15 @@ textarea:focus {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.form-grid .actions {
+  grid-column: 1 / -1;
+}
+
+.form-grid [data-equipment-rows] {
+  grid-column: 1 / -1;
 }
 
 .flash {
