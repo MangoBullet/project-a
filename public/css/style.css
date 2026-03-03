@@ -224,6 +224,10 @@ textarea:focus {
   grid-column: 1 / -1;
 }
 
+.form-grid [data-borrow-rows] {
+  grid-column: 1 / -1;
+}
+
 .flash {
   border-radius: 8px;
   padding: 0.75rem 0.9rem;

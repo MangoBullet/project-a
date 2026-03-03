@@ -52,13 +52,37 @@ exports.create = async (req, res, next) => {
   try {
     const { user_id, borrow_date, due_date, borrow_status } = req.body;
 
-    if (due_date < borrow_date) {
-      req.flash('error', 'Due date must be on or after borrow date.');
+    const userIds = Array.isArray(user_id) ? user_id : [user_id];
+    const borrowDates = Array.isArray(borrow_date) ? borrow_date : [borrow_date];
+    const dueDates = Array.isArray(due_date) ? due_date : [due_date];
+    const statuses = Array.isArray(borrow_status) ? borrow_status : [borrow_status];
+
+    const payload = userIds
+      .map((id, index) => ({
+        user_id: Number(id) || null,
+        borrow_date: borrowDates[index],
+        due_date: dueDates[index],
+        borrow_status: statuses[index] || 'borrowed'
+      }))
+      .filter((item) => item.user_id && item.borrow_date && item.due_date);
+
+    if (!payload.length) {
+      throw new Error('Please provide at least one valid borrow record.');
+    }
+
+    const invalidDateRange = payload.some((item) => item.due_date < item.borrow_date);
+    if (invalidDateRange) {
+      req.flash('error', 'Due date must be on or after borrow date for every row.');
       return res.redirect('/borrows/new');
     }
 
-    await Borrow.create({ user_id, borrow_date, due_date, borrow_status });
-    req.flash('success', 'Borrow record created successfully.');
+    if (payload.length === 1) {
+      await Borrow.create(payload[0]);
+    } else {
+      await Borrow.bulkCreate(payload);
+    }
+
+    req.flash('success', `${payload.length} borrow record(s) created successfully.`);
     res.redirect('/borrows');
   } catch (error) {
     req.flash('error', error.message);
